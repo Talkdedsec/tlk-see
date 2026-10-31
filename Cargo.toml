@@ -1,0 +1,18 @@
+[package]
+name = "tlk-see"
+version = "1.0.0"
+edition = "2021"
+authors = ["Talkdedsec <292909750+Talkdedsec@users.noreply.github.com>"]
+description = "Oracle in your terminal: TempleOS GodWord/GodBiblePassage, faithfully ported, with a percentage spread"
+license = "MIT"
+repository = "https://github.com/Talkdedsec/tlk-see"
+
+[[bin]]
+name = "tlk-see"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+panic = "abort"
