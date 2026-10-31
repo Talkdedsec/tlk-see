@@ -6,7 +6,9 @@
 mod bible;
 mod bible_books;
 mod date;
+mod doodle;
 mod god;
+mod song;
 
 use god::{percents, tsc, God, GOD_BAD_BITS};
 use std::io::{self, IsTerminal, Write};
@@ -21,6 +23,8 @@ tlk-see — TempleOS oracle, with percentages
 USAGE
   tlk-see [word] [-n <count>]   words with a percentage spread, plus a date (default, 4 words)
   tlk-see bible [-l <lines>]    a random passage (default 20 lines)
+  tlk-see song                  two measures twice, printed and played
+  tlk-see doodle                a random sprite, drawn in half-blocks
 
 OPTIONS
   --tr          Turkish vocabulary
@@ -34,20 +38,30 @@ Each draw needs entropy: press ENTER when asked. The timer is read at that
 instant and its low bits thrown away, as GOD_BAD_BITS does in TempleOS.
 ";
 
+#[derive(PartialEq)]
+enum Mode {
+    Word,
+    Bible,
+    Song,
+    Doodle,
+}
+
 struct Args {
-    bible: bool,
+    mode: Mode,
     tr: bool,
     count: usize,
     lines: usize,
 }
 
 fn parse_args() -> Result<Args, String> {
-    let mut a = Args { bible: false, tr: false, count: 4, lines: 20 };
+    let mut a = Args { mode: Mode::Word, tr: false, count: 4, lines: 20 };
     let mut it = std::env::args().skip(1);
     while let Some(arg) = it.next() {
         match arg.as_str() {
-            "word" | "words" => a.bible = false,
-            "bible" | "verse" => a.bible = true,
+            "word" | "words" => a.mode = Mode::Word,
+            "bible" | "verse" => a.mode = Mode::Bible,
+            "song" => a.mode = Mode::Song,
+            "doodle" | "sprite" => a.mode = Mode::Doodle,
             "--tr" => a.tr = true,
             "--en" => a.tr = false,
             "-n" | "--count" => {
@@ -85,14 +99,17 @@ struct Style {
     dim: &'static str,
     hot: &'static str,
     off: &'static str,
+    color: bool,
+    tty: bool,
 }
 
 fn style() -> Style {
-    let plain = std::env::var_os("NO_COLOR").is_some() || !io::stdout().is_terminal();
-    if plain {
-        Style { dim: "", hot: "", off: "" }
+    let tty = io::stdout().is_terminal();
+    let color = tty && std::env::var_os("NO_COLOR").is_none();
+    if color {
+        Style { dim: "\x1b[90m", hot: "\x1b[1;33m", off: "\x1b[0m", color, tty }
     } else {
-        Style { dim: "\x1b[90m", hot: "\x1b[1;33m", off: "\x1b[0m" }
+        Style { dim: "", hot: "", off: "", color, tty }
     }
 }
 
@@ -132,21 +149,40 @@ fn main() {
     };
     let mut god = God::new(&mut latch);
 
-    if args.bible {
-        let lines: Vec<&str> = BIBLE.lines().collect();
-        let span = bible::BIBLE_LINES - (args.lines - 1);
-        let start = god.bits(21) as usize % span + 1;
-        let verse = bible::line2verse(&lines, start);
-        println!();
-        if let Some(v) = &verse {
-            println!("{}  {v}{}", st.hot, st.off);
+    match args.mode {
+        Mode::Bible => {
+            let lines: Vec<&str> = BIBLE.lines().collect();
+            let span = bible::BIBLE_LINES - (args.lines - 1);
+            let start = god.bits(21) as usize % span + 1;
             println!();
+            if let Some(v) = bible::line2verse(&lines, start) {
+                println!("{}  {v}{}", st.hot, st.off);
+                println!();
+            }
+            for l in bible::book_lines(&lines, start, args.lines) {
+                println!("  {l}");
+            }
+            println!();
+            return;
         }
-        for l in bible::book_lines(&lines, start, args.lines) {
-            println!("  {l}");
+        Mode::Song => {
+            let s = song::song(&mut god);
+            println!();
+            println!("  {}{s}{}", st.hot, st.off);
+            println!();
+            if st.tty {
+                song::play(&s);
+            }
+            return;
         }
-        println!();
-        return;
+        Mode::Doodle => {
+            let dc = doodle::doodle(&mut god);
+            println!();
+            print!("{}", dc.render(st.color));
+            println!();
+            return;
+        }
+        Mode::Word => {}
     }
 
     let vocab: Vec<&str> = if args.tr { VOCAB_TR } else { VOCAB_EN }
