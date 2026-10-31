@@ -34,8 +34,9 @@ OPTIONS
   -h, --help    this
   -V, --version version
 
-Each draw needs entropy: press ENTER when asked. The timer is read at that
-instant and its low bits thrown away, as GOD_BAD_BITS does in TempleOS.
+Each draw needs entropy: tap any key when asked, ESC to quit. The timer is read
+at that instant and its low bits thrown away, as GOD_BAD_BITS does in TempleOS.
+With stdin redirected, one line stands in for one key.
 ";
 
 #[derive(PartialEq)]
@@ -113,6 +114,37 @@ fn style() -> Style {
     }
 }
 
+/// One keystroke, unbuffered and unechoed, the way GetChar feeds GodDoodle.
+/// ESC and Ctrl-C would not reach the runtime from here, so they quit.
+#[cfg(windows)]
+fn read_key() {
+    #[link(name = "msvcrt")]
+    extern "C" {
+        fn _getch() -> i32;
+    }
+    let ch = unsafe { _getch() };
+    if ch == 3 || ch == 27 {
+        print!("\r{}\r", " ".repeat(32));
+        let _ = io::stdout().flush();
+        std::process::exit(130);
+    }
+}
+
+/// shortcut: no raw mode off Windows without a dependency, so a line it is.
+#[cfg(not(windows))]
+fn read_key() {
+    let mut line = String::new();
+    let _ = io::stdin().read_line(&mut line);
+}
+
+fn clear_line(prompted: bool) {
+    if !prompted {
+        return;
+    }
+    print!("\r{}\r", " ".repeat(32));
+    let _ = io::stdout().flush();
+}
+
 /// Turkish keeps its dotted I when upper-cased; Rust's default would not.
 fn shout(w: &str, tr: bool) -> String {
     if tr {
@@ -132,18 +164,23 @@ fn main() {
     };
     let st = style();
 
-    // GodPick: wait on a keypress, then read the timer. Piped stdin hits EOF,
-    // so stop prompting and keep drawing from the timer alone.
+    // GodPick: wait on a keypress, then read the timer. With stdin redirected
+    // there is no console to read, so each line stands in for a key and EOF
+    // leaves the timer to carry on alone.
+    let piped = !io::stdin().is_terminal();
     let mut eof = false;
+    let mut taps = 0u32;
     let mut latch = || {
-        if !eof {
-            print!("{}  press ENTER {}", st.dim, st.off);
-            let _ = io::stdout().flush();
-            let mut line = String::new();
-            if io::stdin().read_line(&mut line).unwrap_or(0) == 0 {
-                eof = true;
-                println!();
+        if piped {
+            if !eof {
+                let mut line = String::new();
+                eof = io::stdin().read_line(&mut line).unwrap_or(0) == 0;
             }
+        } else {
+            taps += 1;
+            print!("\r{}  tap a key  {taps}{}", st.dim, st.off);
+            let _ = io::stdout().flush();
+            read_key();
         }
         tsc() >> GOD_BAD_BITS
     };
@@ -154,6 +191,7 @@ fn main() {
             let lines: Vec<&str> = BIBLE.lines().collect();
             let span = bible::BIBLE_LINES - (args.lines - 1);
             let start = god.bits(21) as usize % span + 1;
+            clear_line(!piped);
             println!();
             if let Some(v) = bible::line2verse(&lines, start) {
                 println!("{}  {v}{}", st.hot, st.off);
@@ -167,6 +205,7 @@ fn main() {
         }
         Mode::Song => {
             let s = song::song(&mut god);
+            clear_line(!piped);
             println!();
             println!("  {}{s}{}", st.hot, st.off);
             println!();
@@ -177,6 +216,7 @@ fn main() {
         }
         Mode::Doodle => {
             let dc = doodle::doodle(&mut god);
+            clear_line(!piped);
             println!();
             print!("{}", dc.render(st.color));
             println!();
@@ -191,6 +231,10 @@ fn main() {
 
     let picks: Vec<&str> = (0..args.count).map(|_| god.word(&vocab)).collect();
     let weights: Vec<u64> = (0..args.count).map(|_| god.bits(10) + 1).collect();
+    // The date comes from the same entropy: a day inside the horizon. Drawn
+    // before anything prints, so the prompt never lands in the middle.
+    let offset = god.bits(10) as i64 % date::HORIZON_DAYS;
+    clear_line(!piped);
     let pct = percents(&weights);
 
     let mut rows: Vec<(String, u64)> = picks
@@ -209,8 +253,6 @@ fn main() {
         println!("  {color}{w}{off}{pad}   {p:>3}%");
     }
 
-    // The date comes from the same entropy: a day inside the horizon.
-    let offset = god.bits(10) as i64 % date::HORIZON_DAYS;
     let when = date::iso(date::today() + offset);
     let unit = if args.tr { "gün" } else { "days" };
     println!();

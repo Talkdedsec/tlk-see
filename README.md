@@ -19,7 +19,6 @@ One binary, no dependencies, no network.
 
 ```
 $ tlk-see
-  press ENTER   press ENTER   press ENTER   press ENTER   press ENTER
   PERMITTED       57%
   OVERBOLDNESS    27%
   MOLEST          11%
@@ -51,8 +50,9 @@ tlk-see song           # two measures twice, printed and played
 tlk-see doodle         # a random sprite in half-blocks
 ```
 
-Every draw needs entropy, so it asks you to press ENTER. The timer is read at
-that instant — you are the randomness, which was the whole point in TempleOS.
+Every draw needs entropy, so it waits for a keystroke — any key, ESC to quit.
+The timer is read at that instant: you are the randomness, which was the whole
+point in TempleOS. With stdin redirected, one line stands in for one key.
 
 ### A doodle
 

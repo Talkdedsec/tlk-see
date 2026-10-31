@@ -4,6 +4,8 @@
 terminalde, üstüne yüzde dağılımı ve tahmini tarih. Tek binary, bağımlılık yok.
 
 **Tarih:** 2026-10-31, v1.0.0 çalışıyor, 15 test geçiyor. Repo private.
+Entropi girişi tek tuş (ENTER gerekmez), ESC çıkar; stdin boruysa satır başına
+bir çekiliş.
 
 ## Nasıl çalışıyor
 - Entropi: `rdtsc` ENTER'a basıldığı anda okunur, alt 4 bit atılır
@@ -34,3 +36,5 @@ terminalde, üstüne yüzde dağılımı ve tahmini tarih. Tek binary, bağıml�
 - Doodle renkli modda yarım blok + 256 renk kullanıyor; eski conhost'ta test
   edilmedi.
 - `-n` / `-l` bayrakları `song` ve `doodle` modlarında sessizce yok sayılıyor.
+- Tuş okuma Windows'ta msvcrt `_getch`; Linux/mac'te ham mod için bağımlılık
+  gerekirdi, orada hâlâ satır okunuyor (`src/main.rs` içindeki `read_key`).

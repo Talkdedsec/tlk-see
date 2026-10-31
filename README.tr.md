@@ -19,7 +19,6 @@ Tek binary, bağımlılık yok, ağ yok.
 
 ```
 $ tlk-see
-  press ENTER   press ENTER   press ENTER   press ENTER   press ENTER
   PERMITTED       57%
   OVERBOLDNESS    27%
   MOLEST          11%
@@ -51,8 +50,9 @@ tlk-see song           # iki ölçü iki kez; hem basılır hem çalınır
 tlk-see doodle         # yarım blok karakterlerle rastgele sprite
 ```
 
-Her çekiliş entropi ister, o yüzden ENTER'a basmanı söyler. Sayaç tam o anda
-okunur — rastgeleliği sen üretiyorsun, TempleOS'ta da bütün mesele buydu.
+Her çekiliş entropi ister, bir tuşa basmanı bekler — herhangi bir tuş, ESC ile
+çıkarsın. Sayaç tam o anda okunur: rastgeleliği sen üretiyorsun, TempleOS'ta da
+bütün mesele buydu. stdin yönlendirilmişse her satır bir tuş yerine geçer.
 
 ## Neresi birebir, neresi bizim
 
