@@ -16,6 +16,8 @@ dağılımı. Tek binary, bağımlılık yok.
   kalan yöntemiyle tam %100'e bölünür, azalan sırada basılır.
 
 ## Yapılmadı / sırada
+- Tahmini tarih: `GodBits(10) % 365` gün sonrası, UTC tabanlı (yerel saat dilimi
+  yok). Ufuk `src/date.rs:HORIZON_DAYS`, bayrakla ayarlanmıyor.
 - `GodDoodle` (rastgele sprite) ve `GodSong` (rastgele ezgi) portlanmadı.
   Terminalde karşılığı yok; istenirse Doodle blok-ASCII, Song beep olarak gelir.
 - GitHub yayını yapılmadı: README (EN+TR), SECURITY.md, OG görseli, topics,

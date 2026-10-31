@@ -5,6 +5,7 @@
 
 mod bible;
 mod bible_books;
+mod date;
 mod god;
 
 use god::{percents, tsc, God, GOD_BAD_BITS};
@@ -18,7 +19,7 @@ const HELP: &str = "\
 tlk-see — TempleOS oracle, with percentages
 
 USAGE
-  tlk-see [word] [-n <count>]   words with a percentage spread (default, 4 words)
+  tlk-see [word] [-n <count>]   words with a percentage spread, plus a date (default, 4 words)
   tlk-see bible [-l <lines>]    a random passage (default 20 lines)
 
 OPTIONS
@@ -171,6 +172,16 @@ fn main() {
         let off = if i == 0 { st.off } else { "" };
         println!("  {color}{w}{off}{pad}   {p:>3}%");
     }
+
+    // The date comes from the same entropy: a day inside the horizon.
+    let offset = god.bits(10) as i64 % date::HORIZON_DAYS;
+    let when = date::iso(date::today() + offset);
+    let unit = if args.tr { "gün" } else { "days" };
+    println!();
+    println!(
+        "  {}{when}{}  {}(+{offset} {unit}){}",
+        st.hot, st.off, st.dim, st.off
+    );
     println!();
 }
 
