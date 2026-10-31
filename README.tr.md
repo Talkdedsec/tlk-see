@@ -18,14 +18,22 @@ bit bit koruyor, üstüne yüzde dağılımı ve tahmini tarih ekliyor.
 Tek binary, bağımlılık yok, ağ yok.
 
 ```
-$ tlk-see
-  PERMITTED       57%
-  OVERBOLDNESS    27%
-  MOLEST          11%
-  FOREFATHERS      5%
+$ tlk-see --tr
+  MEBLAĞ    40%
+  KEMER     28%
+  LEZZET    21%
+  BORÇLU     8%
+  DÜĞÜM      3%
 
-  2027-07-11  (+253 days)
+  2027-02-22  (+114 gün)
+
+  Ağırlık MEBLAĞ üzerinde, yüzde 40; arkasında yüzde 28 ile KEMER var.
+  LEZZET, BORÇLU ve DÜĞÜM kenarda bekliyor. Zamanı 2027-02-22, 114 gün
+  sonrası.
 ```
+
+Liste çekilişin kendisi; altındaki paragraf aynı çekilişin tek cümleye
+dönüşmüş hali — dört dağınık kelime yerine okunacak bir şey.
 
 ## Kurulum
 

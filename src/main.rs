@@ -8,6 +8,7 @@ mod bible_books;
 mod date;
 mod doodle;
 mod god;
+mod reading;
 mod song;
 
 use god::{percents, tsc, God, GOD_BAD_BITS};
@@ -137,6 +138,53 @@ fn read_key() {
     let _ = io::stdin().read_line(&mut line);
 }
 
+/// Console columns, so a doodle never wraps. 80 when there is no console.
+#[cfg(windows)]
+fn term_width() -> i64 {
+    #[repr(C)]
+    #[derive(Default)]
+    struct Coord {
+        x: i16,
+        y: i16,
+    }
+    #[repr(C)]
+    #[derive(Default)]
+    struct SmallRect {
+        left: i16,
+        top: i16,
+        right: i16,
+        bottom: i16,
+    }
+    #[repr(C)]
+    #[derive(Default)]
+    struct Csbi {
+        size: Coord,
+        cursor: Coord,
+        attributes: u16,
+        window: SmallRect,
+        max_size: Coord,
+    }
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn GetStdHandle(which: u32) -> isize;
+        fn GetConsoleScreenBufferInfo(handle: isize, info: *mut Csbi) -> i32;
+    }
+    let mut csbi = Csbi::default();
+    let ok = unsafe { GetConsoleScreenBufferInfo(GetStdHandle(-11i32 as u32), &mut csbi) };
+    if ok == 0 {
+        return 80;
+    }
+    (csbi.window.right - csbi.window.left + 1) as i64
+}
+
+#[cfg(not(windows))]
+fn term_width() -> i64 {
+    std::env::var("COLUMNS")
+        .ok()
+        .and_then(|c| c.parse().ok())
+        .unwrap_or(80)
+}
+
 fn clear_line(prompted: bool) {
     if !prompted {
         return;
@@ -215,7 +263,9 @@ fn main() {
             return;
         }
         Mode::Doodle => {
-            let dc = doodle::doodle(&mut god);
+            // Two columns go to the indent, one more keeps a soft-wrapping
+            // terminal from spilling the last cell onto the next line.
+            let dc = doodle::doodle(&mut god, (term_width() - 3).min(80));
             clear_line(!piped);
             println!();
             print!("{}", dc.render(st.color));
@@ -234,6 +284,7 @@ fn main() {
     // The date comes from the same entropy: a day inside the horizon. Drawn
     // before anything prints, so the prompt never lands in the middle.
     let offset = god.bits(10) as i64 % date::HORIZON_DAYS;
+    let phrasing = god.bits(2);
     clear_line(!piped);
     let pct = percents(&weights);
 
@@ -259,6 +310,13 @@ fn main() {
     println!(
         "  {}{when}{}  {}(+{offset} {unit}){}",
         st.hot, st.off, st.dim, st.off
+    );
+    println!();
+    print!(
+        "{}{}{}",
+        st.dim,
+        reading::reading(phrasing, &rows, &when, offset, args.tr),
+        st.off
     );
     println!();
 }

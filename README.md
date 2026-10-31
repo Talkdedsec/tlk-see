@@ -19,13 +19,20 @@ One binary, no dependencies, no network.
 
 ```
 $ tlk-see
-  PERMITTED       57%
-  OVERBOLDNESS    27%
-  MOLEST          11%
-  FOREFATHERS      5%
+  LEARNER          45%
+  TRANSCRIPTION    22%
+  PROJECT          17%
+  PERVERSENESS     16%
 
-  2027-07-11  (+253 days)
+  2027-07-16  (+258 days)
+
+  The weight falls on LEARNER at 45%, with TRANSCRIPTION behind it at 22%.
+  PROJECT and PERVERSENESS wait at the edge. The hour reads 2027-07-16,
+  258 days out.
 ```
+
+The list is the draw; the paragraph under it is that same draw read back as one
+sentence, so there is something to read instead of four loose words.
 
 ## Install
 
