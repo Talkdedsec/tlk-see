@@ -70,6 +70,27 @@ Her çekiliş entropi ister, bir tuşa basmanı bekler — herhangi bir tuş, ES
 çıkarsın. Sayaç tam o anda okunur: rastgeleliği sen üretiyorsun, TempleOS'ta da
 bütün mesele buydu. stdin yönlendirilmişse her satır bir tuş yerine geçer.
 
+## Çekilişi paylaşmak
+
+Her çekiliş **kaydını** basıyor — `GodHexIns`'in okuduğu hex, TempleOS doodle'ı
+böyle geri oynatıyordu — ve tarayıcıda aynısını açan bir bağlantı:
+
+```
+  record  f7f823fc4423d34423742423
+  https://talkdedsec.github.io/tlk-see/#m=word&n=3&l=20&tr=0&d=20758&h=f7f823…
+```
+
+Kaydı geri verdiğinde aynı çekiliş dönüyor — kelimesi kelimesine, tarihi
+tarihine, iki sürümde de:
+
+```sh
+tlk-see -n 3 --hex f7f823fc4423d34423742423 --day 20758
+```
+
+Sitede her çekilişin altında *copy link*, *copy reading* ve *copy command*
+düğmeleri var. `--quiet` kaydı bastırır.
+
+
 ## Neresi birebir, neresi bizim
 
 Kamuya açık TempleOS kaynağından olduğu gibi portlandı — modulo sapması ve bit

@@ -33,13 +33,21 @@ OPTIONS
   --en          English vocabulary, TempleOS Vocab.DD verbatim (default)
   -n <count>    how many words (1-32)
   -l <lines>    how many lines of scripture (1-200)
+  --hex <rec>   replay a draw from its record instead of asking for keys
+  --day <n>     the day a replayed draw was made (days since 1970)
+  --quiet       leave out the record and the link
   -h, --help    this
   -V, --version version
 
 Each draw needs entropy: tap any key when asked, ESC to quit. The timer is read
 at that instant and its low bits thrown away, as GOD_BAD_BITS does in TempleOS.
 With stdin redirected, one line stands in for one key.
+
+Every draw prints its record, the hex GodHexIns reads, and a link that replays
+it in the browser. Pass the record back with --hex to get the same draw.
 ";
+
+const SITE: &str = "https://talkdedsec.github.io/tlk-see/";
 
 #[derive(PartialEq)]
 enum Mode {
@@ -54,6 +62,37 @@ struct Args {
     tr: bool,
     count: usize,
     lines: usize,
+    hex: Option<String>,
+    /// The day a replayed draw was made, so a shared reading keeps its date.
+    day: Option<i64>,
+    quiet: bool,
+}
+
+impl Args {
+    fn slug(&self) -> &'static str {
+        match self.mode {
+            Mode::Word => "word",
+            Mode::Bible => "bible",
+            Mode::Song => "song",
+            Mode::Doodle => "doodle",
+        }
+    }
+
+    fn base_day(&self) -> i64 {
+        self.day.unwrap_or_else(date::today)
+    }
+
+    /// A link that replays this draw in the browser build.
+    fn link(&self, record: &str) -> String {
+        let tr = u8::from(self.tr);
+        format!(
+            "{SITE}#m={}&n={}&l={}&tr={tr}&d={}&h={record}",
+            self.slug(),
+            self.count,
+            self.lines,
+            self.base_day()
+        )
+    }
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -62,6 +101,9 @@ fn parse_args() -> Result<Args, String> {
         tr: false,
         count: 4,
         lines: 20,
+        hex: None,
+        day: None,
+        quiet: false,
     };
     let mut it = std::env::args().skip(1);
     while let Some(arg) = it.next() {
@@ -78,6 +120,18 @@ fn parse_args() -> Result<Args, String> {
             "-l" | "--lines" => {
                 a.lines = numeric(it.next(), "-l", 1, 200)?;
             }
+            "--hex" | "--record" => {
+                a.hex = Some(it.next().ok_or("--hex needs a record")?);
+            }
+            "--day" => {
+                a.day = Some(
+                    it.next()
+                        .ok_or("--day needs a number")?
+                        .parse()
+                        .map_err(|_| "--day needs a number")?,
+                );
+            }
+            "--quiet" => a.quiet = true,
             "-h" | "--help" => {
                 print!("{HELP}");
                 std::process::exit(0);
@@ -226,7 +280,9 @@ fn oracle() {
     // there is no console to read, so each line stands in for a key and EOF
     // leaves the timer to carry on alone.
     let piped = !io::stdin().is_terminal();
-    tty::raw(!piped);
+    let replay = args.hex.is_some();
+    let prompted = !piped && !replay;
+    tty::raw(prompted);
     let mut eof = false;
     let mut taps = 0u32;
     let mut latch = || {
@@ -243,14 +299,23 @@ fn oracle() {
         }
         tsc() >> GOD_BAD_BITS
     };
-    let mut god = God::new(&mut latch);
+    let mut god = match &args.hex {
+        Some(hex) => match God::from_hex(hex) {
+            Ok(g) => g,
+            Err(e) => {
+                eprintln!("tlk-see: {e}");
+                std::process::exit(2);
+            }
+        },
+        None => God::new(&mut latch),
+    };
 
     match args.mode {
         Mode::Bible => {
             let lines: Vec<&str> = BIBLE.lines().collect();
             let span = bible::BIBLE_LINES - (args.lines - 1);
             let start = god.bits(21) as usize % span + 1;
-            clear_line(!piped);
+            clear_line(prompted);
             println!();
             if let Some(v) = bible::line2verse(&lines, start) {
                 println!("{}  {v}{}", st.hot, st.off);
@@ -260,14 +325,16 @@ fn oracle() {
                 println!("  {l}");
             }
             println!();
+            share(&st, &args, &god);
             return;
         }
         Mode::Song => {
             let s = song::song(&mut god);
-            clear_line(!piped);
+            clear_line(prompted);
             println!();
             println!("  {}{s}{}", st.hot, st.off);
             println!();
+            share(&st, &args, &god);
             if st.tty {
                 song::play(&s);
             }
@@ -277,10 +344,11 @@ fn oracle() {
             // Two columns go to the indent, one more keeps a soft-wrapping
             // terminal from spilling the last cell onto the next line.
             let dc = doodle::doodle(&mut god, (term_width() - 3).min(80));
-            clear_line(!piped);
+            clear_line(prompted);
             println!();
             print!("{}", dc.render(st.color));
             println!();
+            share(&st, &args, &god);
             return;
         }
         Mode::Word => {}
@@ -296,7 +364,7 @@ fn oracle() {
     // before anything prints, so the prompt never lands in the middle.
     let offset = god.bits(10) as i64 % date::HORIZON_DAYS;
     let phrasing = god.bits(2);
-    clear_line(!piped);
+    clear_line(prompted);
     let pct = percents(&weights);
 
     let mut rows: Vec<(String, u64)> = picks
@@ -319,7 +387,7 @@ fn oracle() {
         println!("  {color}{w}{off}{pad}   {p:>3}%");
     }
 
-    let when = date::iso(date::today() + offset);
+    let when = date::iso(args.base_day() + offset);
     let unit = if args.tr { "gün" } else { "days" };
     println!();
     println!(
@@ -333,6 +401,18 @@ fn oracle() {
         reading::reading(phrasing, &rows, &when, offset, args.tr),
         st.off
     );
+    println!();
+    share(&st, &args, &god);
+}
+
+/// The draw written down: the hex GodHexIns reads, and a link that replays it.
+fn share(st: &Style, args: &Args, god: &God) {
+    if args.quiet {
+        return;
+    }
+    let record = god.record();
+    println!("  {}record  {record}{}", st.dim, st.off);
+    println!("  {}{}{}", st.dim, args.link(&record), st.off);
     println!();
 }
 

@@ -24,21 +24,62 @@ pub fn tsc() -> u64 {
 
 pub struct God<'a> {
     fifo: VecDeque<u8>,
-    latch: &'a mut dyn FnMut() -> u64,
+    /// Every bit ever queued, so a draw can be written down and replayed.
+    tape: Vec<u8>,
+    latch: Option<&'a mut dyn FnMut() -> u64>,
 }
 
 impl<'a> God<'a> {
     pub fn new(latch: &'a mut dyn FnMut() -> u64) -> Self {
         God {
             fifo: VecDeque::new(),
-            latch,
+            tape: Vec::new(),
+            latch: Some(latch),
         }
+    }
+
+    /// GodHexIns: a hex record read back into the queue, four bits a digit.
+    /// Replaying needs no keystrokes, so there is no latch behind it.
+    pub fn from_hex(hex: &str) -> Result<Self, String> {
+        let mut god = God {
+            fifo: VecDeque::new(),
+            tape: Vec::new(),
+            latch: None,
+        };
+        for c in hex.chars().filter(|c| !c.is_whitespace()) {
+            let v = c
+                .to_digit(16)
+                .ok_or_else(|| format!("not a hex record: {c:?}"))?;
+            for i in (0..4).rev() {
+                let bit = ((v >> i) & 1) as u8;
+                god.fifo.push_back(bit);
+                god.tape.push(bit);
+            }
+        }
+        if god.fifo.is_empty() {
+            return Err("the record is empty".into());
+        }
+        Ok(god)
+    }
+
+    /// The draw so far, as the hex record GodHexIns would read.
+    pub fn record(&self) -> String {
+        self.tape
+            .chunks(4)
+            .filter(|c| c.len() == 4)
+            .map(|c| {
+                let v = c.iter().fold(0u8, |acc, b| acc * 2 + b);
+                char::from_digit(v as u32, 16).unwrap_or('0')
+            })
+            .collect()
     }
 
     /// GodBitsIns: least significant bit first.
     fn bits_ins(&mut self, num_bits: u32, mut n: u64) {
         for _ in 0..num_bits {
-            self.fifo.push_back((n & 1) as u8);
+            let bit = (n & 1) as u8;
+            self.fifo.push_back(bit);
+            self.tape.push(bit);
             n >>= 1;
         }
     }
@@ -53,10 +94,16 @@ impl<'a> God<'a> {
                     res = (res << 1) + b as u64;
                     left -= 1;
                 }
-                None => {
-                    let n = (self.latch)();
-                    self.bits_ins(GOD_GOOD_BITS, n);
-                }
+                None => match self.latch.as_mut() {
+                    Some(latch) => {
+                        let n = latch();
+                        self.bits_ins(GOD_GOOD_BITS, n);
+                    }
+                    None => {
+                        eprintln!("tlk-see: the record ran out of bits");
+                        std::process::exit(2);
+                    }
+                },
             }
         }
         res
@@ -116,6 +163,32 @@ mod tests {
         let v = god.bits(17);
         assert!(v < 1 << 17);
         assert_eq!(calls.get(), 1, "24 good bits cover one 17-bit draw");
+    }
+
+    #[test]
+    fn a_record_replays_the_same_draw() {
+        let vocab = ["alpha", "beta", "gamma", "delta", "epsilon"];
+        let mut seed = 0x1234_5678u64;
+        let mut latch = || {
+            seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+            seed >> 20
+        };
+        let mut god = God::new(&mut latch);
+        let first: Vec<&str> = (0..5).map(|_| god.word(&vocab)).collect();
+        let hex = god.record();
+        assert!(!hex.is_empty() && hex.chars().all(|c| c.is_ascii_hexdigit()));
+
+        let mut replay = God::from_hex(&hex).expect("own record should parse");
+        let again: Vec<&str> = (0..5).map(|_| replay.word(&vocab)).collect();
+        assert_eq!(first, again);
+        assert_eq!(replay.record(), hex, "a replay writes the same record");
+    }
+
+    #[test]
+    fn a_bad_record_is_refused() {
+        assert!(God::from_hex("").is_err());
+        assert!(God::from_hex("zz").is_err());
+        assert!(God::from_hex("00ff").is_ok());
     }
 
     #[test]

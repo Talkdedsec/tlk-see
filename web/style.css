@@ -808,3 +808,59 @@ footer .meta a {
     opacity: 1;
   }
 }
+
+/* --------------------------------------------------------------- share */
+
+.share {
+  margin-top: clamp(2rem, 5vw, 3.25rem);
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line-soft);
+  display: grid;
+  gap: 1rem;
+  opacity: 0;
+  animation: rise 0.8s var(--out) 0.6s forwards;
+}
+
+.share .rec {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-4);
+}
+
+.share code {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--fg-3);
+  word-break: break-all;
+}
+
+.share-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.share-actions button {
+  appearance: none;
+  font: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.55rem 1.1rem;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--fg-3);
+  transition: color 0.25s var(--out), border-color 0.25s var(--out);
+}
+
+.share-actions button:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+}

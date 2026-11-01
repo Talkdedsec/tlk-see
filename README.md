@@ -90,6 +90,27 @@ $ tlk-see song
   5qDDsCCCCe4G5EqGCeGDC4G5qDDsCCCCe4G5EqGCeGDC4G5e4BGq5GetC4B5DeGCetGDEs4B5G4B5Gq4G5G
 ```
 
+## Sharing a draw
+
+Every draw prints its **record** — the hex `GodHexIns` reads, which is how
+TempleOS replayed a doodle — and a link that replays it in the browser:
+
+```
+  record  f7f823fc4423d34423742423
+  https://talkdedsec.github.io/tlk-see/#m=word&n=3&l=20&tr=0&d=20758&h=f7f823…
+```
+
+Hand the record back and the same draw returns, word for word and date for
+date, in either build:
+
+```sh
+tlk-see -n 3 --hex f7f823fc4423d34423742423 --day 20758
+```
+
+The page has *copy link*, *copy reading* and *copy command* under each draw.
+`--quiet` leaves the record out.
+
+
 ## What is faithful, what is new
 
 Ported from the public-domain TempleOS source, unchanged — including the

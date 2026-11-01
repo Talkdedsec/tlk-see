@@ -13,14 +13,42 @@ export function tick() {
 export class God {
   constructor(onNeed) {
     this.fifo = [];
+    this.tape = []; // every bit queued, so a draw can be written down
     this.onNeed = onNeed; // called when the fifo runs dry; resolves on a tap
     this.taps = 0;
+  }
+
+  /** GodHexIns: a hex record read back in, four bits a digit, no keystrokes. */
+  static fromHex(hex) {
+    const god = new God(null);
+    for (const c of hex.replace(/\s+/g, "")) {
+      const v = parseInt(c, 16);
+      if (Number.isNaN(v)) throw new Error(`not a hex record: ${c}`);
+      for (let i = 3; i >= 0; i--) {
+        const bit = (v >> i) & 1;
+        god.fifo.push(bit);
+        god.tape.push(bit);
+      }
+    }
+    if (!god.fifo.length) throw new Error("the record is empty");
+    return god;
+  }
+
+  /** The draw so far, as the hex record GodHexIns would read. */
+  record() {
+    let out = "";
+    for (let i = 0; i + 4 <= this.tape.length; i += 4) {
+      out += (this.tape[i] * 8 + this.tape[i + 1] * 4 + this.tape[i + 2] * 2 + this.tape[i + 3]).toString(16);
+    }
+    return out;
   }
 
   /** GodBitsIns: least significant bit first. */
   insert(numBits, n) {
     for (let i = 0; i < numBits; i++) {
-      this.fifo.push(n % 2);
+      const bit = n % 2;
+      this.fifo.push(bit);
+      this.tape.push(bit);
       n = Math.floor(n / 2);
     }
   }
@@ -38,9 +66,11 @@ export class God {
       if (this.fifo.length) {
         res = res * 2 + this.fifo.shift();
         left--;
-      } else {
+      } else if (this.onNeed) {
         await this.onNeed();
         this.feed();
+      } else {
+        throw new Error("the record ran out of bits");
       }
     }
     return res;
@@ -80,9 +110,12 @@ export function shout(word, tr) {
 
 export const HORIZON_DAYS = 365;
 
-export function isoDate(offsetDays) {
-  const d = new Date(Date.now() + offsetDays * 86400000);
-  return d.toISOString().slice(0, 10);
+export function today() {
+  return Math.floor(Date.now() / 86400000);
+}
+
+export function isoDate(day) {
+  return new Date(day * 86400000).toISOString().slice(0, 10);
 }
 
 /* --------------------------------------------------------------- prose */

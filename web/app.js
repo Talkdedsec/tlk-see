@@ -4,6 +4,7 @@ import {
   shout,
   reading,
   isoDate,
+  today,
   HORIZON_DAYS,
   song,
   play,
@@ -27,6 +28,8 @@ const go = $("go");
 let mode = "word";
 let drawing = false;
 let waiting = null; // resolver for the keystroke the oracle is blocked on
+let baseDay = today(); // the day the draw was made, kept when one is shared
+let lines = 20;
 
 /* ----------------------------------------------------------- bit meter */
 
@@ -127,22 +130,34 @@ $("count").addEventListener("input", (e) => {
 
 /* ---------------------------------------------------------------- draw */
 
-go.addEventListener("click", draw);
+go.addEventListener("click", () => draw());
 
-async function draw() {
+async function draw(replay) {
   if (drawing) return;
   drawing = true;
   go.disabled = true;
   out.innerHTML = "";
 
   const tr = $("tr").checked;
-  const god = new God(
-    () =>
-      new Promise((resolve) => {
-        waiting = resolve;
-        say("tap a key", true);
-      }),
-  );
+  let god;
+  if (replay) {
+    try {
+      god = God.fromHex(replay);
+    } catch (err) {
+      drawing = false;
+      go.disabled = false;
+      return say(err.message, false);
+    }
+  } else {
+    baseDay = today();
+    god = new God(
+      () =>
+        new Promise((resolve) => {
+          waiting = resolve;
+          say("tap a key", true);
+        }),
+    );
+  }
   const tick = () => paintMeter(god);
   const bits = god.bits.bind(god);
   god.bits = async (n) => {
@@ -156,6 +171,7 @@ async function draw() {
     else if (mode === "bible") await drawBible(god);
     else if (mode === "song") await drawSong(god);
     else await drawDoodle(god);
+    showShare(god, tr);
     say(HINTS[mode], false);
   } catch (err) {
     say(`the draw failed: ${err.message}`, false);
@@ -179,7 +195,7 @@ async function drawWords(god, tr) {
   const rows = picks
     .map((w, i) => [shout(w, tr), percents(weights)[i]])
     .sort((a, b) => b[1] - a[1]);
-  const when = isoDate(offset);
+  const when = isoDate(baseDay + offset);
 
   const list = document.createElement("div");
   list.className = "rows";
@@ -210,10 +226,10 @@ async function drawWords(god, tr) {
 
 async function drawBible(god) {
   say("fetching the text…", false);
-  const lines = await bible();
-  const span = BIBLE_LINES - 19;
+  const text = await bible();
+  const span = BIBLE_LINES - (lines - 1);
   const start = ((await god.bits(21)) % span) + 1;
-  const ref = line2verse(lines, start, BOOKS, BOOK_LINES);
+  const ref = line2verse(text, start, BOOKS, BOOK_LINES);
 
   const box = document.createElement("div");
   box.className = "passage";
@@ -222,10 +238,88 @@ async function drawBible(god) {
   h.textContent = ref || "—";
   const body = document.createElement("p");
   body.className = "body";
-  body.textContent = lines.slice(start - 1, start + 19).join("\n");
+  body.textContent = text.slice(start - 1, start - 1 + lines).join("\n");
   box.append(h, body);
   out.append(box);
 }
+
+/* --------------------------------------------------------------- share */
+
+/** The record is the draw written down; the link replays it anywhere. */
+function showShare(god, tr) {
+  const record = god.record();
+  const params = `m=${mode}&n=${$("count").value}&l=${lines}&tr=${tr ? 1 : 0}&d=${baseDay}&h=${record}`;
+  history.replaceState(null, "", `#${params}`);
+  const link = `${location.origin}${location.pathname}#${params}`;
+
+  const box = document.createElement("div");
+  box.className = "share";
+  box.innerHTML = `
+    <p class="rec"><span>record</span><code></code></p>
+    <div class="share-actions">
+      <button data-copy="link">copy link</button>
+      <button data-copy="text">copy reading</button>
+      <button data-copy="cli">copy command</button>
+    </div>`;
+  box.querySelector("code").textContent = record;
+
+  const plain = () =>
+    [...out.querySelectorAll(".row")]
+      .map((r) => `${r.querySelector(".w").textContent}  ${r.querySelector(".p").textContent}`)
+      .join("\n") ||
+    out.textContent.trim();
+
+  box.querySelectorAll("button").forEach((b) => {
+    b.addEventListener("click", async () => {
+      const what = b.dataset.copy;
+      const text =
+        what === "link"
+          ? link
+          : what === "cli"
+            ? `tlk-see ${mode === "word" ? "" : mode + " "}--hex ${record} --day ${baseDay}${tr ? " --tr" : ""}`
+            : `${plain()}\n\n${out.querySelector(".verdict")?.textContent ?? ""}`.trim();
+      try {
+        await navigator.clipboard.writeText(text);
+        const was = b.textContent;
+        b.textContent = "copied";
+        setTimeout(() => (b.textContent = was), 1400);
+      } catch {
+        say("the browser would not let me reach the clipboard", false);
+      }
+    });
+  });
+  out.append(box);
+}
+
+/** A link carries a whole draw; replay it instead of asking for keys. */
+function fromHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  const hex = p.get("h");
+  if (!hex) return;
+  const m = p.get("m");
+  if (m && HINTS[m]) {
+    mode = m;
+    document
+      .querySelectorAll(".modes button")
+      .forEach((b) => b.setAttribute("aria-selected", String(b.dataset.mode === m)));
+  }
+  const n = +p.get("n");
+  if (n >= 1 && n <= 8) {
+    $("count").value = n;
+    $("count").nextElementSibling.textContent = n;
+  }
+  const l = +p.get("l");
+  if (l >= 1 && l <= 200) lines = l;
+  $("tr").checked = p.get("tr") === "1";
+  const d = +p.get("d");
+  baseDay = Number.isFinite(d) && d > 0 ? d : today();
+  document.querySelector('[data-for="count"]').style.visibility =
+    mode === "word" ? "visible" : "hidden";
+  say("replaying a shared draw", false);
+  draw(hex);
+}
+
+fromHash();
 
 async function drawSong(god) {
   const str = await song(god);

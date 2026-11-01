@@ -69,3 +69,16 @@ bir çekiliş.
   `$url.sha256` dosyasını okuyor. Yeni sürümde manifest elle güncellenmezse
   excavator `checkver`/`autoupdate` ile kendi yakalar.
 - CI artık üç platformda test + `cargo fmt --check` + `clippy -D warnings`.
+
+## Paylaşım (v1.2.0)
+- `God` artık kuyruğa giren her biti `tape`'e yazıyor. `record()` bunu 4'erli
+  gruplayıp hex veriyor; `God::from_hex` / `God.fromHex` geri okuyor. Bu
+  TempleOS'un `GodHexIns`'i ile aynı sıralama (her hex basamağı MSB-first).
+- CLI: her çekilişin altında `record <hex>` + siteye replay bağlantısı.
+  `--hex <rec>` tuş sormadan aynı çekilişi oynatır, `--day <n>` tarihin
+  kaymaması için taban günü verir, `--quiet` ikisini de bastırır.
+- Web: `#m=..&n=..&l=..&tr=..&d=..&h=<hex>` bağlantısı açılışta replay eder;
+  her çekilişin altında copy link / copy reading / copy command.
+- CI'da **parite adımı**: sabit bir kayıt hem Rust hem JS tarafında
+  oynatılıp aynı satır bekleniyor. İki port ayrışırsa build kırılır.
+  Golden değer `.github/workflows/ci.yml` içinde (`REC` / `WANT`).
