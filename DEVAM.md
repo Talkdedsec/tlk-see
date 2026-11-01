@@ -57,3 +57,15 @@ bir çekiliş.
   `stty` yoksa sessizce satır moduna düşer. **Linux/macOS'ta denenmedi** —
   CI sadece derleyip smoke test yapıyor, orada stdin boru olduğu için ham
   mod yolu çalışmıyor.
+
+## Dağıtım
+- Release `v*` etiketiyle tetiklenir (`.github/workflows/release.yml`): Windows
+  x86_64, Linux x86_64, macOS arm64 binary'leri + yanlarında `.sha256`.
+  Release'i elle `gh release create` ile açıyoruz ki yazarı Talkdedsec kalsın;
+  workflow sadece dosyaları asıyor (yoksa oluşturuyor).
+- `RELEASE_TOKEN` bu repoda **yok**; workflow `github.token`a düşüyor. Release
+  elle açıldığı sürece sorun değil, ama secret eklenirse daha temiz.
+- Scoop: `Talkdedsec/scoop-tlk` içinde `bucket/tlk-see.json`, autoupdate
+  `$url.sha256` dosyasını okuyor. Yeni sürümde manifest elle güncellenmezse
+  excavator `checkver`/`autoupdate` ile kendi yakalar.
+- CI artık üç platformda test + `cargo fmt --check` + `clippy -D warnings`.
