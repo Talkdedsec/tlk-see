@@ -10,6 +10,7 @@ mod doodle;
 mod god;
 mod reading;
 mod song;
+mod tty;
 
 use god::{percents, tsc, God, GOD_BAD_BITS};
 use std::io::{self, IsTerminal, Write};
@@ -56,7 +57,12 @@ struct Args {
 }
 
 fn parse_args() -> Result<Args, String> {
-    let mut a = Args { mode: Mode::Word, tr: false, count: 4, lines: 20 };
+    let mut a = Args {
+        mode: Mode::Word,
+        tr: false,
+        count: 4,
+        lines: 20,
+    };
     let mut it = std::env::args().skip(1);
     while let Some(arg) = it.next() {
         match arg.as_str() {
@@ -109,33 +115,32 @@ fn style() -> Style {
     let tty = io::stdout().is_terminal();
     let color = tty && std::env::var_os("NO_COLOR").is_none();
     if color {
-        Style { dim: "\x1b[90m", hot: "\x1b[1;33m", off: "\x1b[0m", color, tty }
+        Style {
+            dim: "\x1b[90m",
+            hot: "\x1b[1;33m",
+            off: "\x1b[0m",
+            color,
+            tty,
+        }
     } else {
-        Style { dim: "", hot: "", off: "", color, tty }
+        Style {
+            dim: "",
+            hot: "",
+            off: "",
+            color,
+            tty,
+        }
     }
 }
 
-/// One keystroke, unbuffered and unechoed, the way GetChar feeds GodDoodle.
-/// ESC and Ctrl-C would not reach the runtime from here, so they quit.
-#[cfg(windows)]
+/// One keystroke, the way GetChar feeds GodDoodle. ESC and Ctrl-C quit.
 fn read_key() {
-    #[link(name = "msvcrt")]
-    extern "C" {
-        fn _getch() -> i32;
-    }
-    let ch = unsafe { _getch() };
-    if ch == 3 || ch == 27 {
+    if tty::is_quit(tty::read_key()) {
+        tty::restore();
         print!("\r{}\r", " ".repeat(32));
         let _ = io::stdout().flush();
         std::process::exit(130);
     }
-}
-
-/// shortcut: no raw mode off Windows without a dependency, so a line it is.
-#[cfg(not(windows))]
-fn read_key() {
-    let mut line = String::new();
-    let _ = io::stdin().read_line(&mut line);
 }
 
 /// Console columns, so a doodle never wraps. 80 when there is no console.
@@ -203,6 +208,11 @@ fn shout(w: &str, tr: bool) -> String {
 }
 
 fn main() {
+    oracle();
+    tty::restore();
+}
+
+fn oracle() {
     let args = match parse_args() {
         Ok(a) => a,
         Err(e) => {
@@ -216,6 +226,7 @@ fn main() {
     // there is no console to read, so each line stands in for a key and EOF
     // leaves the timer to carry on alone.
     let piped = !io::stdin().is_terminal();
+    tty::raw(!piped);
     let mut eof = false;
     let mut taps = 0u32;
     let mut latch = || {
@@ -293,9 +304,13 @@ fn main() {
         .zip(pct)
         .map(|(w, p)| (shout(w, args.tr), p))
         .collect();
-    rows.sort_by(|a, b| b.1.cmp(&a.1));
+    rows.sort_by_key(|r| std::cmp::Reverse(r.1));
 
-    let width = rows.iter().map(|(w, _)| w.chars().count()).max().unwrap_or(0);
+    let width = rows
+        .iter()
+        .map(|(w, _)| w.chars().count())
+        .max()
+        .unwrap_or(0);
     println!();
     for (i, (w, p)) in rows.iter().enumerate() {
         let pad = " ".repeat(width - w.chars().count());

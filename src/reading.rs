@@ -42,7 +42,9 @@ pub fn reading(pick: u64, rows: &[(String, u64)], date: &str, offset: i64, tr: b
 
     if rows.len() == 1 {
         let body = if tr {
-            format!("{w0} tek başına duruyor, yüzde {p0}. Verilen tarih {date}, {offset} gün sonrası.")
+            format!(
+                "{w0} tek başına duruyor, yüzde {p0}. Verilen tarih {date}, {offset} gün sonrası."
+            )
         } else {
             format!("{w0} stands alone at {p0}%. The hour reads {date}, {offset} days out.")
         };
@@ -56,7 +58,8 @@ pub fn reading(pick: u64, rows: &[(String, u64)], date: &str, offset: i64, tr: b
     } else if tr {
         format!(" {} kenarda bekliyor.", join(&rest, "ve"))
     } else {
-        format!(" {} wait at the edge.", join(&rest, "and"))
+        let verb = if rest.len() == 1 { "waits" } else { "wait" };
+        format!(" {} {verb} at the edge.", join(&rest, "and"))
     };
 
     let body = match (tr, pick % 3) {

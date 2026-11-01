@@ -32,7 +32,11 @@ impl Canvas {
     fn new(w: i64) -> Self {
         let w = w.clamp(16, 200);
         let h = w + w % 2; // the renderer walks rows in pairs
-        Canvas { w, h, px: vec![WHITE; (w * h) as usize] }
+        Canvas {
+            w,
+            h,
+            px: vec![WHITE; (w * h) as usize],
+        }
     }
 
     fn inside(&self, x: i64, y: i64) -> bool {

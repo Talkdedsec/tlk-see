@@ -37,14 +37,22 @@ sentence, so there is something to read instead of four loose words.
 
 ## Install
 
+Windows, through Scoop:
+
+```sh
+scoop bucket add tlk https://github.com/Talkdedsec/scoop-tlk
+scoop install tlk-see
+```
+
+Or take a binary for Windows, Linux or macOS from
+[releases](https://github.com/Talkdedsec/tlk-see/releases) and drop it on your
+`PATH`. Or build it:
+
 ```sh
 git clone https://github.com/Talkdedsec/tlk-see
 cd tlk-see
 cargo build --release
 ```
-
-The binary lands in `target/release/tlk-see` (`.exe` on Windows). Copy it
-anywhere on your `PATH`.
 
 ## Use
 

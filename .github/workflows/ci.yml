@@ -7,12 +7,26 @@ on:
   workflow_dispatch:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets --locked -- -D warnings
+
   test:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
       - run: cargo test --locked
       - run: cargo build --release --locked
       - name: smoke test
         shell: bash
-        run: printf '\n%.0s' {1..40} | ./target/release/tlk-see.exe -n 3
+        run: |
+          bin=target/release/tlk-see
+          [ -f "$bin.exe" ] && bin="$bin.exe"
+          printf '\n%.0s' {1..40} | "$bin" -n 3

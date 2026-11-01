@@ -38,14 +38,21 @@ dönüşmüş hali — dört dağınık kelime yerine okunacak bir şey.
 
 ## Kurulum
 
+Windows'ta Scoop ile:
+
+```sh
+scoop bucket add tlk https://github.com/Talkdedsec/scoop-tlk
+scoop install tlk-see
+```
+
+Ya da [releases](https://github.com/Talkdedsec/tlk-see/releases) sayfasından
+Windows, Linux veya macOS binary'sini indirip `PATH`'e at. Ya da derle:
+
 ```sh
 git clone https://github.com/Talkdedsec/tlk-see
 cd tlk-see
 cargo build --release
 ```
-
-Binary `target/release/tlk-see` (Windows'ta `.exe`) olarak çıkar. `PATH`'teki
-herhangi bir klasöre kopyalaman yeterli.
 
 ## Kullanım
 

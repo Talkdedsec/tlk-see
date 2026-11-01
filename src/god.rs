@@ -29,7 +29,10 @@ pub struct God<'a> {
 
 impl<'a> God<'a> {
     pub fn new(latch: &'a mut dyn FnMut() -> u64) -> Self {
-        God { fifo: VecDeque::new(), latch }
+        God {
+            fifo: VecDeque::new(),
+            latch,
+        }
     }
 
     /// GodBitsIns: least significant bit first.

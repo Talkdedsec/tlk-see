@@ -25,7 +25,11 @@ fn ins_note(mss: &mut Mss, buf: &mut String, k: u64) {
             mss.octave_state = mss.octave;
             buf.push((b'0' + mss.octave_state as u8) as char);
         }
-        buf.push(if k == 0 { 'G' } else { (b'A' + k as u8 - 1) as char });
+        buf.push(if k == 0 {
+            'G'
+        } else {
+            (b'A' + k as u8 - 1) as char
+        });
     } else {
         if mss.octave_state != mss.octave + 1 {
             mss.octave_state = mss.octave + 1;
@@ -37,7 +41,10 @@ fn ins_note(mss: &mut Mss, buf: &mut String, k: u64) {
 
 /// GodSongStr: two measures.
 fn song_str(god: &mut God) -> String {
-    let mut mss = Mss { octave: OCTAVE, octave_state: OCTAVE + 1 };
+    let mut mss = Mss {
+        octave: OCTAVE,
+        octave_state: OCTAVE + 1,
+    };
     let mut buf = String::new();
     buf.push((b'0' + mss.octave_state as u8) as char);
     let mut last = u8::MAX;
@@ -114,9 +121,21 @@ pub fn notes(song: &str) -> Vec<(u32, u32)> {
     for c in song.chars() {
         match c {
             '0'..='9' => octave = c as i32 - '0' as i32,
-            'q' => { base = 400; triplet = false; dotted = false; }
-            'e' => { base = 200; triplet = false; dotted = false; }
-            's' => { base = 100; triplet = false; dotted = false; }
+            'q' => {
+                base = 400;
+                triplet = false;
+                dotted = false;
+            }
+            'e' => {
+                base = 200;
+                triplet = false;
+                dotted = false;
+            }
+            's' => {
+                base = 100;
+                triplet = false;
+                dotted = false;
+            }
             't' => triplet = true,
             '.' => dotted = true,
             'A'..='G' => {
@@ -175,7 +194,10 @@ mod tests {
         let s = format!("{a}{a}{b}{b}");
         assert!(a.len() > 8 && b.len() > 8, "got {a:?} {b:?}");
 
-        assert!(s.chars().all(|c| "0123456789ABCDEFGqest.R".contains(c)), "{s:?}");
+        assert!(
+            s.chars().all(|c| "0123456789ABCDEFGqest.R".contains(c)),
+            "{s:?}"
+        );
     }
 
     #[test]

@@ -1,6 +1,6 @@
 [package]
 name = "tlk-see"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 authors = ["Talkdedsec <292909750+Talkdedsec@users.noreply.github.com>"]
 description = "Oracle in your terminal: TempleOS GodWord/GodBiblePassage, faithfully ported, with a percentage spread"

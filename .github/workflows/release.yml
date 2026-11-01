@@ -1,0 +1,50 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: tag to attach the binaries to
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  binaries:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows-x86_64
+            ext: .exe
+          - os: ubuntu-latest
+            name: linux-x86_64
+            ext: ""
+          - os: macos-latest
+            name: macos-arm64
+            ext: ""
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - run: cargo build --release --locked
+      - name: name the binary
+        shell: bash
+        run: |
+          tag="${{ inputs.tag || github.ref_name }}"
+          cp "target/release/tlk-see${{ matrix.ext }}" \
+             "tlk-see-$tag-${{ matrix.name }}${{ matrix.ext }}"
+      # The release is cut by hand so it stays authored by Talkdedsec; this
+      # only hangs the binaries on it, and creates it if the tag ran ahead.
+      - name: attach to the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
+        run: |
+          tag="${{ inputs.tag || github.ref_name }}"
+          gh release view "$tag" >/dev/null 2>&1 ||
+            gh release create "$tag" --title "tlk-see $tag" --generate-notes
+          gh release upload "$tag" tlk-see-"$tag"-*"${{ matrix.ext }}" --clobber

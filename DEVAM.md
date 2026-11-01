@@ -51,5 +51,9 @@ bir çekiliş.
 - Doodle renkli modda yarım blok + 256 renk kullanıyor; eski conhost'ta test
   edilmedi.
 - `-n` / `-l` bayrakları `song` ve `doodle` modlarında sessizce yok sayılıyor.
-- Tuş okuma Windows'ta msvcrt `_getch`; Linux/mac'te ham mod için bağımlılık
-  gerekirdi, orada hâlâ satır okunuyor (`src/main.rs` içindeki `read_key`).
+- Tuş okuma `src/tty.rs`: Windows'ta msvcrt `_getch`, diğerlerinde `stty raw
+  -echo </dev/tty` + tek byte; çıkarken `stty -g` ile kaydedilen hâl geri
+  yüklenir (`main` → `oracle()` → `tty::restore()`, ESC/Ctrl-C yolunda da).
+  `stty` yoksa sessizce satır moduna düşer. **Linux/macOS'ta denenmedi** —
+  CI sadece derleyip smoke test yapıyor, orada stdin boru olduğu için ham
+  mod yolu çalışmıyor.

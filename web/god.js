@@ -106,7 +106,7 @@ export function reading(pick, rows, date, offset, tr) {
     ? ""
     : tr
       ? ` ${joinWords(rest, "ve")} kenarda bekliyor.`
-      : ` ${joinWords(rest, "and")} wait at the edge.`;
+      : ` ${joinWords(rest, "and")} ${rest.length === 1 ? "waits" : "wait"} at the edge.`;
 
   const en = [
     `The weight falls on ${w0} at ${p0}%, with ${w1} behind it at ${p1}%.${tail} The hour reads ${date}, ${offset} days out.`,
