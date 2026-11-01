@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">
+  <a href="https://talkdedsec.github.io/tlk-see/"><b>tarayıcıda dene</b></a> ·
   <a href="README.md">English</a> ·
   <a href="https://talkdedsec.com">talkdedsec.com</a> ·
   <a href="SECURITY.md">Güvenlik</a> ·

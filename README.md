@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">
+  <a href="https://talkdedsec.github.io/tlk-see/"><b>run it in the browser</b></a> ·
   <a href="README.tr.md">Türkçe</a> ·
   <a href="https://talkdedsec.com">talkdedsec.com</a> ·
   <a href="SECURITY.md">Security</a> ·

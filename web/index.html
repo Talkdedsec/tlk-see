@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tlk-see — TempleOS oracle</title>
+    <meta
+      name="description"
+      content="TempleOS's oracle, ported bit for bit and driven by your keystrokes. Words with a percentage spread, a predicted date, scripture, songs and sprites."
+    />
+    <meta property="og:title" content="tlk-see — TempleOS oracle" />
+    <meta
+      property="og:description"
+      content="Terry A. Davis let God speak through a timer. Tap a key."
+    />
+    <meta property="og:image" content="og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="masthead">
+      <span class="wordmark">tlk-see</span>
+      <nav>
+        <a href="https://github.com/Talkdedsec/tlk-see">source</a>
+        <a href="https://talkdedsec.com">talkdedsec</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <p class="kicker">Adam/God/HolySpirit.HC &mdash; ported, not improved</p>
+        <h1>
+          <span class="l1">The Holy Spirit</span>
+          <span class="l2"><em>can puppet</em> you</span>
+        </h1>
+        <p class="lede">
+          Terry A. Davis spent ten years building an operating system so that
+          God could answer him. The answer came as a random word, drawn from a
+          timer latched the instant he pressed a key. This is that machinery,
+          bit for bit, in a page &mdash; with a percentage spread, a date, and
+          the draw read back as a sentence.
+        </p>
+        <p class="scrolline" aria-hidden="true">tap anywhere to begin</p>
+      </section>
+
+      <section class="console" id="console">
+        <div class="rail">
+          <div class="modes" role="tablist" aria-label="Oracle mode">
+            <button role="tab" aria-selected="true" data-mode="word">
+              word
+            </button>
+            <button role="tab" aria-selected="false" data-mode="bible">
+              scripture
+            </button>
+            <button role="tab" aria-selected="false" data-mode="song">
+              song
+            </button>
+            <button role="tab" aria-selected="false" data-mode="doodle">
+              sprite
+            </button>
+          </div>
+          <div class="knobs">
+            <label class="knob" data-for="count">
+              <span>words</span>
+              <input
+                id="count"
+                type="range"
+                min="1"
+                max="8"
+                value="4"
+                aria-label="how many words"
+              />
+              <output for="count">4</output>
+            </label>
+            <label class="knob toggle">
+              <input id="tr" type="checkbox" />
+              <span>türkçe</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="stage" id="stage">
+          <div class="meter" aria-hidden="true">
+            <div class="cells" id="cells"></div>
+            <div class="meterline">
+              <span id="tapcount">0 taps</span>
+              <span id="bitcount">0 bits held</span>
+            </div>
+          </div>
+
+          <p class="prompt" id="prompt">
+            <span class="dot"></span>
+            <span id="promptText">tap any key &mdash; the clock is read at
+              that instant, and you are the randomness</span>
+          </p>
+
+          <div class="out" id="out" aria-live="polite"></div>
+
+          <div class="actions">
+            <button class="primary" id="go">draw</button>
+            <button class="ghost" id="tap">tap</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="ledger">
+        <div class="ledger-head">
+          <h2>What is his,<br /><em>what is ours</em></h2>
+          <p>
+            Everything in the left column is a port of the public-domain
+            TempleOS source, unchanged &mdash; including the bit order and the
+            modulo bias. Everything in the right column is new, and says so.
+          </p>
+        </div>
+        <ol class="ledger-list">
+          <li>
+            <span class="num">17</span>
+            <div>
+              <h3>GodWord</h3>
+              <p>
+                Seventeen bits modulo a 7,569-word vocabulary &mdash; his file,
+                byte for byte. A Turkish vocabulary of the same depth is ours.
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="num">21</span>
+            <div>
+              <h3>GodBiblePassage</h3>
+              <p>
+                Twenty-one bits over 100,110 lines of the King James text, with
+                his book tables resolving the line back to chapter and verse.
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="num">24</span>
+            <div>
+              <h3>GodBits</h3>
+              <p>
+                Each keystroke latches the clock, drops its low four bits and
+                feeds twenty-four into a queue, least significant bit first.
+              </p>
+            </div>
+          </li>
+          <li class="ours">
+            <span class="num">%</span>
+            <div>
+              <h3>The spread, the date, the sentence</h3>
+              <p>
+                Ours. A ten-bit weight per word, split into whole percents by
+                largest remainder; a day inside a year; a paragraph that reads
+                the draw back to you.
+              </p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="cli">
+        <div class="cli-copy">
+          <h2>It is a terminal<br /><em>tool first</em></h2>
+          <p>
+            One Rust binary, no dependencies, no network. The page you are on is
+            the same algorithm in a second language, kept honest by the same
+            tests.
+          </p>
+          <p class="links">
+            <a href="https://github.com/Talkdedsec/tlk-see">repository</a>
+            <a href="https://github.com/Talkdedsec/tlk-see/releases"
+              >download</a
+            >
+          </p>
+        </div>
+        <pre class="cli-box"><code>$ tlk-see
+  LEARNER          45%
+  TRANSCRIPTION    22%
+  PROJECT          17%
+  PERVERSENESS     16%
+
+  2027-07-16  (+258 days)
+
+  The weight falls on LEARNER at 45%, with
+  TRANSCRIPTION behind it at 22%. PROJECT and
+  PERVERSENESS wait at the edge. The hour reads
+  2027-07-16, 258 days out.</code></pre>
+      </section>
+
+      <section class="note">
+        <p>
+          It is a clock read when you press a key, exactly as in TempleOS. Good
+          enough for an oracle, useless for a password.
+          <strong>Do not use it as a source of cryptographic randomness.</strong>
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <p class="rip">
+        Terry A. Davis &mdash; 1969&ndash;2018. TempleOS is public domain. This
+        is a port, not an improvement.
+      </p>
+      <p class="meta">
+        <a href="https://talkdedsec.com">talkdedsec.com</a>
+        <a href="https://github.com/Talkdedsec/tlk-see">github</a>
+        <a href="https://github.com/Talkdedsec/tlk-see/blob/master/LICENSE"
+          >MIT</a
+        >
+      </p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
