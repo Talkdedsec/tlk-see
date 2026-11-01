@@ -3,7 +3,8 @@
 **Ne:** TempleOS'un kahini (GodWord / GodBiblePassage / GodSong / GodDoodle)
 terminalde, üstüne yüzde dağılımı ve tahmini tarih. Tek binary, bağımlılık yok.
 
-**Tarih:** 2026-10-31, v1.0.0 çalışıyor, 15 test geçiyor. Repo private.
+**Tarih:** 2026-11-01, v1.0.0 yayında. 19 test geçiyor. Repo PUBLIC, site
+https://talkdedsec.github.io/tlk-see/, Release v1.0.0 (Windows binary ekli).
 Entropi girişi tek tuş (ENTER gerekmez), ESC çıkar; stdin boruysa satır başına
 bir çekiliş.
 
@@ -30,11 +31,20 @@ bir çekiliş.
 - Tahmini tarih: `GodBits(10) % 365` gün sonrası, UTC tabanlı (yerel saat
   dilimi yok). Ufuk `src/date.rs:HORIZON_DAYS`, bayrakla ayarlanmıyor.
 
+## Web sürümü
+- `web/` klasörü: `god.js` (Rust portunun aynadaki hali), `books.js`
+  (`src/bible_books.rs`'ten üretildi), `app.js`, `style.css`, `index.html`.
+- Veri çoğaltılmıyor: `.github/workflows/pages.yml` derleme sırasında `web/*`
+  ile `data/*` dosyalarını `_site/`e kopyalayıp Pages'e atıyor.
+- Entropi tarayıcıda `performance.now()` mikrosaniyesi, alt 4 bit atılır; her
+  tuş/dokunuş 24 bit besler. `God.bits` async, tuş bekler.
+- Şarkı WebAudio kare dalga; doodle 320×320 canvas (gerçek raster, CLI'daki
+  yarım blok değil). KJV metni (4.3 MB) sadece scripture sekmesinde indirilir.
+- `web/books.js` elle yazılmaz; `src/bible_books.rs` değişirse yeniden üret.
+
 ## Yapılmadı / sırada
-- Repo public yapılırsa eksikler: GitHub Pages + Website alanı, ilk Release
-  (`v1.0.0` tag + Windows binary), Settings > Social preview'a `docs/og.png`
-  yüklemesi (API yok, elle), secret scanning + push protection, Private
-  vulnerability reporting açma.
+- **Social preview elle yüklenecek**: Settings > Social preview >
+  `docs/og.png`. GitHub'ın API'si yok, tek eksik kalan madde bu.
 - Scoop manifesti yok.
 - Binary ~4.6 MB; tamamı gömülü KJV metni. Küçültmek isteniyorsa metin
   sıkıştırılır ya da yanına dosya olarak konur (satır numaraları bozulmamalı).
