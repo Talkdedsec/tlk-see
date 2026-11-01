@@ -30,47 +30,47 @@
     <header class="masthead">
       <span class="wordmark">tlk-see</span>
       <nav>
-        <a href="https://github.com/Talkdedsec/tlk-see">source</a>
+        <a data-i18n="nav.source" href="https://github.com/Talkdedsec/tlk-see">source</a>
         <a href="https://talkdedsec.com">talkdedsec</a>
       </nav>
     </header>
 
     <main>
       <section class="hero">
-        <p class="kicker">Adam/God/HolySpirit.HC &mdash; ported, not improved</p>
+        <p class="kicker" data-i18n="hero.kicker">Adam/God/HolySpirit.HC &mdash; ported, not improved</p>
         <h1>
-          <span class="l1">The Holy Spirit</span>
-          <span class="l2"><em>can puppet</em> you</span>
+          <span class="l1" data-i18n="hero.l1">The Holy Spirit</span>
+          <span class="l2" data-i18n="hero.l2"><em>can puppet</em> you</span>
         </h1>
-        <p class="lede">
+        <p class="lede" data-i18n="hero.lede">
           Terry A. Davis spent ten years building an operating system so that
           God could answer him. The answer came as a random word, drawn from a
           timer latched the instant he pressed a key. This is that machinery,
           bit for bit, in a page &mdash; with a percentage spread, a date, and
           the draw read back as a sentence.
         </p>
-        <p class="scrolline" aria-hidden="true">tap anywhere to begin</p>
+        <p class="scrolline" aria-hidden="true" data-i18n="hero.scroll">tap anywhere to begin</p>
       </section>
 
       <section class="console" id="console">
         <div class="rail">
           <div class="modes" role="tablist" aria-label="Oracle mode">
-            <button role="tab" aria-selected="true" data-mode="word">
+            <button role="tab" aria-selected="true" data-mode="word" data-i18n="mode.word">
               word
             </button>
-            <button role="tab" aria-selected="false" data-mode="bible">
+            <button role="tab" aria-selected="false" data-mode="bible" data-i18n="mode.bible">
               scripture
             </button>
-            <button role="tab" aria-selected="false" data-mode="song">
+            <button role="tab" aria-selected="false" data-mode="song" data-i18n="mode.song">
               song
             </button>
-            <button role="tab" aria-selected="false" data-mode="doodle">
+            <button role="tab" aria-selected="false" data-mode="doodle" data-i18n="mode.doodle">
               sprite
             </button>
           </div>
           <div class="knobs">
             <label class="knob" data-for="count">
-              <span>words</span>
+              <span data-i18n="knob.words">words</span>
               <input
                 id="count"
                 type="range"
@@ -106,16 +106,16 @@
           <div class="out" id="out" aria-live="polite"></div>
 
           <div class="actions">
-            <button class="primary" id="go">draw</button>
-            <button class="ghost" id="tap">tap</button>
+            <button class="primary" id="go" data-i18n="action.draw">draw</button>
+            <button class="ghost" id="tap" data-i18n="action.tap">tap</button>
           </div>
         </div>
       </section>
 
       <section class="ledger">
         <div class="ledger-head">
-          <h2>What is his,<br /><em>what is ours</em></h2>
-          <p>
+          <h2 data-i18n="ledger.h2">What is his,<br /><em>what is ours</em></h2>
+          <p data-i18n="ledger.lede">
             Everything in the left column is a port of the public-domain
             TempleOS source, unchanged &mdash; including the bit order and the
             modulo bias. Everything in the right column is new, and says so.
@@ -125,8 +125,8 @@
           <li>
             <span class="num">17</span>
             <div>
-              <h3>GodWord</h3>
-              <p>
+              <h3 data-i18n="ledger.word.h">GodWord</h3>
+              <p data-i18n="ledger.word.p">
                 Seventeen bits modulo a 7,569-word vocabulary &mdash; his file,
                 byte for byte. A Turkish vocabulary of the same depth is ours.
               </p>
@@ -135,8 +135,8 @@
           <li>
             <span class="num">21</span>
             <div>
-              <h3>GodBiblePassage</h3>
-              <p>
+              <h3 data-i18n="ledger.bible.h">GodBiblePassage</h3>
+              <p data-i18n="ledger.bible.p">
                 Twenty-one bits over 100,110 lines of the King James text, with
                 his book tables resolving the line back to chapter and verse.
               </p>
@@ -145,8 +145,8 @@
           <li>
             <span class="num">24</span>
             <div>
-              <h3>GodBits</h3>
-              <p>
+              <h3 data-i18n="ledger.bits.h">GodBits</h3>
+              <p data-i18n="ledger.bits.p">
                 Each keystroke latches the clock, drops its low four bits and
                 feeds twenty-four into a queue, least significant bit first.
               </p>
@@ -155,8 +155,8 @@
           <li class="ours">
             <span class="num">%</span>
             <div>
-              <h3>The spread, the date, the sentence</h3>
-              <p>
+              <h3 data-i18n="ledger.ours.h">The spread, the date, the sentence</h3>
+              <p data-i18n="ledger.ours.p">
                 Ours. A ten-bit weight per word, split into whole percents by
                 largest remainder; a day inside a year; a paragraph that reads
                 the draw back to you.
@@ -168,15 +168,15 @@
 
       <section class="cli">
         <div class="cli-copy">
-          <h2>It is a terminal<br /><em>tool first</em></h2>
-          <p>
+          <h2 data-i18n="cli.h2">It is a terminal<br /><em>tool first</em></h2>
+          <p data-i18n="cli.p1">
             One Rust binary, no dependencies, no network. The page you are on is
             the same algorithm in a second language, kept honest by the same
             tests.
           </p>
           <p class="links">
-            <a href="https://github.com/Talkdedsec/tlk-see">repository</a>
-            <a href="https://github.com/Talkdedsec/tlk-see/releases"
+            <a data-i18n="cli.repo" href="https://github.com/Talkdedsec/tlk-see">repository</a>
+            <a data-i18n="cli.download" href="https://github.com/Talkdedsec/tlk-see/releases"
               >download</a
             >
           </p>
@@ -196,7 +196,7 @@
       </section>
 
       <section class="note">
-        <p>
+        <p data-i18n="note">
           It is a clock read when you press a key, exactly as in TempleOS. Good
           enough for an oracle, useless for a password.
           <strong>Do not use it as a source of cryptographic randomness.</strong>
@@ -205,7 +205,7 @@
     </main>
 
     <footer>
-      <p class="rip">
+      <p class="rip" data-i18n="footer.rip">
         Terry A. Davis &mdash; 1969&ndash;2018. TempleOS is public domain. This
         is a port, not an improvement.
       </p>

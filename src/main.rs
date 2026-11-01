@@ -47,6 +47,34 @@ Every draw prints its record, the hex GodHexIns reads, and a link that replays
 it in the browser. Pass the record back with --hex to get the same draw.
 ";
 
+const HELP_TR: &str = "\
+tlk-see — TempleOS kahini, yüzdeli
+
+KULLANIM
+  tlk-see [word] [-n <sayı>]    yüzde dağılımlı kelimeler + tarih (varsayılan, 4 kelime)
+  tlk-see bible [-l <satır>]    rastgele pasaj (varsayılan 20 satır)
+  tlk-see song                  iki ölçü iki kez; hem basılır hem çalınır
+  tlk-see doodle                rastgele sprite, yarım blok karakterlerle
+
+SEÇENEKLER
+  --tr          Türkçe sözlük ve Türkçe çıktı
+  --en          İngilizce sözlük, TempleOS Vocab.DD'nin aynısı (varsayılan)
+  -n <sayı>     kaç kelime (1-32)
+  -l <satır>    kaç satır ayet (1-200)
+  --hex <kayıt> tuş sormadan, kayıttan aynı çekilişi oynatır
+  --day <n>     oynatılan çekilişin yapıldığı gün (1970'ten beri gün sayısı)
+  --quiet       kaydı ve bağlantıyı bastırır
+  -h, --help    bu
+  -V, --version sürüm
+
+Her çekiliş entropi ister: sorulduğunda herhangi bir tuşa bas, ESC ile çık.
+Sayaç tam o anda okunur ve alt bitleri atılır — TempleOS'ta GOD_BAD_BITS ne
+yapıyorsa o. stdin yönlendirilmişse her satır bir tuş yerine geçer.
+
+Her çekiliş kaydını basar (GodHexIns'in okuduğu hex) ve tarayıcıda aynısını
+açan bir bağlantı verir. Kaydı --hex ile geri verirsen aynı çekiliş döner.
+";
+
 const SITE: &str = "https://talkdedsec.github.io/tlk-see/";
 
 #[derive(PartialEq)]
@@ -96,16 +124,20 @@ impl Args {
 }
 
 fn parse_args() -> Result<Args, String> {
+    // --help can come before --tr, so the language is settled up front.
+    let argv: Vec<String> = std::env::args().skip(1).collect();
+    let tr_first = argv.iter().any(|a| a == "--tr");
+    let help = if tr_first { HELP_TR } else { HELP };
     let mut a = Args {
         mode: Mode::Word,
-        tr: false,
+        tr: tr_first,
         count: 4,
         lines: 20,
         hex: None,
         day: None,
         quiet: false,
     };
-    let mut it = std::env::args().skip(1);
+    let mut it = argv.into_iter();
     while let Some(arg) = it.next() {
         match arg.as_str() {
             "word" | "words" => a.mode = Mode::Word,
@@ -133,7 +165,7 @@ fn parse_args() -> Result<Args, String> {
             }
             "--quiet" => a.quiet = true,
             "-h" | "--help" => {
-                print!("{HELP}");
+                print!("{help}");
                 std::process::exit(0);
             }
             "-V" | "--version" => {

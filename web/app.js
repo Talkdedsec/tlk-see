@@ -14,6 +14,7 @@ import {
   GOD_GOOD_BITS,
 } from "./god.js";
 import { BOOKS, BOOK_LINES } from "./books.js";
+import { HINTS, applyLang } from "./i18n.js";
 
 const $ = (id) => document.getElementById(id);
 const stage = $("stage");
@@ -31,6 +32,9 @@ let waiting = null; // resolver for the keystroke the oracle is blocked on
 let baseDay = today(); // the day the draw was made, kept when one is shared
 let lines = 20;
 
+const turkish = () => $("tr").checked;
+const words = () => HINTS[turkish() ? "tr" : "en"];
+
 /* ----------------------------------------------------------- bit meter */
 
 const CELLS = GOD_GOOD_BITS;
@@ -41,8 +45,8 @@ function paintMeter(god) {
   [...cells.children].forEach((c, i) => {
     c.className = i < held ? "on" : i < CELLS ? "spent" : "";
   });
-  tapcount.textContent = `${god ? god.taps : 0} tap${god && god.taps === 1 ? "" : "s"}`;
-  bitcount.textContent = `${held} bits held`;
+  tapcount.textContent = words().taps(god ? god.taps : 0);
+  bitcount.textContent = words().bits(held);
 }
 paintMeter(null);
 
@@ -113,16 +117,9 @@ document.querySelectorAll(".modes button").forEach((b) => {
     document.querySelector('[data-for="count"]').style.visibility =
       mode === "word" ? "visible" : "hidden";
     out.innerHTML = "";
-    say(HINTS[mode], false);
+    say(words()[mode], false);
   });
 });
-
-const HINTS = {
-  word: "tap any key — the clock is read at that instant, and you are the randomness",
-  bible: "one draw over 100,110 lines of the King James text",
-  song: "two measures, twice; it plays when the last note is picked",
-  doodle: "twenty strokes and six floods, one keystroke at a time",
-};
 
 $("count").addEventListener("input", (e) => {
   e.target.nextElementSibling.textContent = e.target.value;
@@ -154,7 +151,7 @@ async function draw(replay) {
       () =>
         new Promise((resolve) => {
           waiting = resolve;
-          say("tap a key", true);
+          say(words().tap, true);
         }),
     );
   }
@@ -172,9 +169,9 @@ async function draw(replay) {
     else if (mode === "song") await drawSong(god);
     else await drawDoodle(god);
     showShare(god, tr);
-    say(HINTS[mode], false);
+    say(words()[mode], false);
   } catch (err) {
-    say(`the draw failed: ${err.message}`, false);
+    say(words().failed(err.message), false);
   } finally {
     drawing = false;
     go.disabled = false;
@@ -225,7 +222,7 @@ async function drawWords(god, tr) {
 }
 
 async function drawBible(god) {
-  say("fetching the text…", false);
+  say(words().fetching, false);
   const text = await bible();
   const span = BIBLE_LINES - (lines - 1);
   const start = ((await god.bits(21)) % span) + 1;
@@ -255,11 +252,11 @@ function showShare(god, tr) {
   const box = document.createElement("div");
   box.className = "share";
   box.innerHTML = `
-    <p class="rec"><span>record</span><code></code></p>
+    <p class="rec"><span data-i18n="share.record">record</span><code></code></p>
     <div class="share-actions">
-      <button data-copy="link">copy link</button>
-      <button data-copy="text">copy reading</button>
-      <button data-copy="cli">copy command</button>
+      <button data-copy="link" data-i18n="share.link">copy link</button>
+      <button data-copy="text" data-i18n="share.text">copy reading</button>
+      <button data-copy="cli" data-i18n="share.cli">copy command</button>
     </div>`;
   box.querySelector("code").textContent = record;
 
@@ -269,6 +266,7 @@ function showShare(god, tr) {
       .join("\n") ||
     out.textContent.trim();
 
+  applyLang(turkish());
   box.querySelectorAll("button").forEach((b) => {
     b.addEventListener("click", async () => {
       const what = b.dataset.copy;
@@ -281,10 +279,10 @@ function showShare(god, tr) {
       try {
         await navigator.clipboard.writeText(text);
         const was = b.textContent;
-        b.textContent = "copied";
+        b.textContent = words().copied;
         setTimeout(() => (b.textContent = was), 1400);
       } catch {
-        say("the browser would not let me reach the clipboard", false);
+        say(words().clipboard, false);
       }
     });
   });
@@ -297,7 +295,7 @@ function fromHash() {
   const hex = p.get("h");
   if (!hex) return;
   const m = p.get("m");
-  if (m && HINTS[m]) {
+  if (m && words()[m]) {
     mode = m;
     document
       .querySelectorAll(".modes button")
@@ -311,15 +309,46 @@ function fromHash() {
   const l = +p.get("l");
   if (l >= 1 && l <= 200) lines = l;
   $("tr").checked = p.get("tr") === "1";
+  applyLang(turkish());
   const d = +p.get("d");
   baseDay = Number.isFinite(d) && d > 0 ? d : today();
   document.querySelector('[data-for="count"]').style.visibility =
     mode === "word" ? "visible" : "hidden";
-  say("replaying a shared draw", false);
+  say(words().replaying, false);
   draw(hex);
 }
 
-fromHash();
+/* ----------------------------------------------------------- language */
+
+$("tr").addEventListener("change", () => {
+  applyLang(turkish());
+  try {
+    localStorage.setItem("tlk-see-lang", turkish() ? "tr" : "en");
+  } catch {
+    // a private window may refuse storage; the switch still works
+  }
+  paintMeter(null);
+  if (!drawing) say(words()[mode], false);
+});
+
+function boot() {
+  let saved = null;
+  try {
+    saved = localStorage.getItem("tlk-see-lang");
+  } catch {
+    // ignore
+  }
+  const lang =
+    saved ??
+    ((navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en");
+  $("tr").checked = lang === "tr";
+  applyLang(turkish());
+  paintMeter(null);
+  say(words()[mode], false);
+  fromHash();
+}
+
+boot();
 
 async function drawSong(god) {
   const str = await song(god);
@@ -327,8 +356,8 @@ async function drawSong(god) {
   p.className = "notes";
   p.textContent = str;
   out.append(p);
-  say("playing", false);
-  play(str, () => say(HINTS.song, false));
+  say(words().playing, false);
+  play(str, () => say(words().song, false));
 }
 
 async function drawDoodle(god) {

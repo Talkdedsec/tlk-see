@@ -82,3 +82,21 @@ bir çekiliş.
 - CI'da **parite adımı**: sabit bir kayıt hem Rust hem JS tarafında
   oynatılıp aynı satır bekleniyor. İki port ayrışırsa build kırılır.
   Golden değer `.github/workflows/ci.yml` içinde (`REC` / `WANT`).
+
+## Türkçe (v1.3.0)
+- Sözlük yeniden üretildi: TDK ∩ altyazı frekansı havuzundan dolgu kelimeler
+  (bir, bu, ve, evet, hadi…), ünlemler, 3 harften kısa girdiler ve kısaltmalar
+  (abd, tv, cd…) çıkarıldı, frekans listesinden geri dolduruldu. Yine 7569.
+- **Bilinen sınır:** havuzun tamamı TDK ∩ frekans = ~8.4k kelime, yani
+  "band" seçerek karakter iyileştirmek mümkün değil. Liste hâlâ altyazı
+  kaynaklı: KEMOTERAPİ, APARTMAN, LİG gibi düz/teknik kelimeler çıkıyor.
+  Terry'nin listesi KJV'nin söz varlığıydı; Türkçe karşılığı için kamuya açık
+  bir *metnin* söz varlığına geçmek gerekir. Kaynak seçimi kullanıcıya ait.
+- Site artık iki dilli: `web/i18n.js` (markup için `TR` tablosu + JS metinleri
+  için `HINTS.en` / `HINTS.tr`). İngilizce HTML'de duruyor, JS kapalıyken de
+  okunuyor; `data-i18n` olan düğümler Türkçe'ye çevriliyor.
+  Dil `localStorage` + `navigator.language` ile seçiliyor, `türkçe` anahtarı
+  hem sözlüğü hem sayfayı çeviriyor.
+- CLI'da `--tr --help` Türkçe yardım basıyor (`HELP_TR`); hatalı argümanda da.
+- CI'da `node web/i18n-check.mjs`: `data-i18n` anahtarlarının hepsinin Türkçesi
+  var mı, fazlalık çeviri kalmış mı, HINTS iki dilde eksiksiz mi.
